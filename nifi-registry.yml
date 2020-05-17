@@ -1,0 +1,33 @@
+- hosts: localNiFiServers
+  remote_user: ping
+  become: yes
+  become_method: sudo
+
+  tasks:
+  - name: check if the directory exists
+    stat:
+      path: /opt/nifi-registry
+    register: nifi_reg_folder
+
+  - name: echo if directory already existed
+    debug:
+      msg: "the nifi-registry directory is already existed"
+    when: nifi_reg_folder.stat.exists
+
+  - name: create directory if not exists
+    file:
+      path: /opt/nifi-registry
+      state: directory
+    when: nifi_reg_folder.stat.exists == false
+
+  - name: upload NiFi Registry distribution (tar.gz) from localhost
+    copy: 
+      src: ./downloads/nifi-registry-0.6.0-bin.tar.gz
+      dest: /opt/nifi-registry
+
+  - name: unarchive NiFi Registry distribution
+    unarchive:
+      src: /opt/nifi-registry/nifi-registry-0.6.0-bin.tar.gz
+      dest: /opt/nifi-registry
+      copy: no
+
